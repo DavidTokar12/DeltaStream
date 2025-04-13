@@ -1,0 +1,24 @@
+{
+    "name": "delta-stream-poetry-pyenv",
+    "build": {
+        "dockerfile": "Dockerfile"
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-python.python",
+                "njpwerner.autodocstring",
+                "charliermarsh.ruff",
+                "ms-python.black-formatter",
+                "streetsidesoftware.code-spell-checker",
+                "yzhang.markdown-all-in-one",
+                "GitHub.copilot",
+                "GitHub.vscode-github-actions"
+            ],
+            "settings": {
+                "python.locator": "js"
+            }
+        }
+    },
+    "remoteUser": "root"
+}
