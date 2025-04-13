@@ -103,7 +103,7 @@ def process_annotation_recursive(
                 return list[processed_args[0]]
             else:
                 try:
-                    return origin[*processed_args]
+                    return origin[tuple(processed_args)]
                 except TypeError as e:
                     raise TypeError(
                         f"Could not reconstruct generic type {origin} for field '{class_name}.{field_name}' with args {processed_args}: {e}"
