@@ -6,11 +6,13 @@
 <p align="center">Structured streaming made efficient – built for real-time structured LLM output with smart deltas and validation.</p>
 
 <div align="center">
+
 [![PyPI version](https://badge.fury.io/py/delta-stream.svg)](https://pypi.org/project/delta-stream/)
 [![Python Versions](https://img.shields.io/pypi/pyversions/delta-stream.svg)](https://pypi.org/project/delta-stream/)
 [![License](https://img.shields.io/github/license/DavidTokar12/DeltaStream)](https://github.com/DavidTokar12/DeltaStream/blob/main/LICENSE)
 [![CI](https://github.com/DavidTokar12/DeltaStream/actions/workflows/ci.yml/badge.svg)](https://github.com/DavidTokar12/DeltaStream/actions/workflows/ci.yml)
 [![Coverage](https://codecov.io/gh/DavidTokar12/DeltaStream/graph/badge.svg?token=L8WPX4BHLL)](https://codecov.io/gh/DavidTokar12/DeltaStream)
+
 </div>
 
 ---
@@ -47,6 +49,7 @@ poetry add delta_stream
 ## Examples
 
 > TBD – examples coming soon. -->
+
 
 ---
 
