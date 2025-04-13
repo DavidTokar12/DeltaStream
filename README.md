@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="logo.png" alt="Delta Stream Logo" height="100"/>
+  <img src="logo.png" alt="Delta Stream Logo" height="200"/>
 </p>
 
 <h1 align="center">Delta Stream</h1>
