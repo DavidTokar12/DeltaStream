@@ -65,7 +65,7 @@ pip install delta-stream
 
 ## 📋 Requirements
 
-- Python 3.9+
+- Python 3.10+
 - pydantic >= 2.0
 
 
