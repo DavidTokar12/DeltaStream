@@ -1,54 +1,52 @@
-[project]
+[tool.poetry]
 name = "delta_stream"
 version = "0.1.0"
 description = "Delta stream makes structured streaming easy and efficient. The primary use case in mind is handling the streaming of structured outputs of LLMs."
+authors = ["David Tokar <1413david@gmail.com>"]
 readme = "README.md"
-requires-python = ">=3.9,<4.0"
-license = { text = "MIT" }
-authors = [
-  { name = "David Tokar", email = "1413david@gmail.com" }
-]
+license = "MIT"
+repository = "https://github.com/DavidTokar12/DeltaStream"
+homepage = "https://github.com/DavidTokar12/DeltaStream"
 keywords = [
-  "json", "stream", "parser", "delta", "diff", "pydantic", "llm",
-  "ai", "openai", "claude", "anthropic", "streaming", "llm output",
-  "structured data"
+    "json", "stream", "parser", "delta", "diff", "pydantic", "llm", 
+    "ai", "openai", "claude", "anthropic", "streaming", "llm output", 
+    "structured data" 
 ]
 classifiers = [
-  "Development Status :: 3 - Alpha",
-  "Intended Audience :: Developers",
-  "License :: OSI Approved :: MIT License",
-  "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.9",
-  "Programming Language :: Python :: 3.10",
-  "Programming Language :: Python :: 3.11",
-  "Programming Language :: Python :: 3.12",
-  "Topic :: Software Development :: Libraries :: Python Modules",
-  "Topic :: Text Processing :: JSON",
-  "Typing :: Typed"
-]
-dependencies = [
-  "pydantic>=2.0,<3.0"
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Text Processing :: JSON",
+    "Typing :: Typed",
 ]
 
-[project.urls]
-Repository = "https://github.com/DavidTokar12/DeltaStream"
-Homepage = "https://github.com/DavidTokar12/DeltaStream"
 
-[optional-dependencies.dev]
+[tool.poetry.dependencies]
+python = ">=3.9,<4.0"	
+pydantic = "^2.0" 
+
+[tool.poetry.group.dev.dependencies]
 ruff = "^0.7.2"
 mypy = "^1.13.0"
 pytest = "^8.3.3"
 black = "^25.1.0"
 pytest-cov = "^6.1.1"
 
+
 [build-system]
-requires = ["setuptools>=61.0"]
-build-backend = "setuptools.build_meta"
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
 
 [tool.ruff]
 extend-exclude = [
-  "docs/",
-  "test/",
+    "docs/",
+    "test/",
 ]
 fix = true
 line-length = 88
@@ -56,13 +54,34 @@ target-version = "py310"
 
 [tool.ruff.lint]
 extend-select = [
-  "B", "C4", "ERA", "I", "N", "PIE", "PGH", "RUF", "SIM", "T20", "TCH", "TID", "UP"
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "ERA", # flake8-eradicate/eradicate
+    "I",   # isort
+    "N",   # pep8-naming
+    "PIE", # flake8-pie
+    "PGH", # pygrep
+    "RUF", # ruff checks
+    "SIM", # flake8-simplify
+    "T20", # flake8-print
+    "TCH", # flake8-type-checking
+    "TID", # flake8-tidy-imports
+    "UP",  # pyupgrade
 ]
 ignore = [
-  "B904", "B905", "ERA001", "RUF009", "TCH002", "TCH001"
+    "B904", # use 'raise ... from err'
+    "B905", # use explicit 'strict=' parameter with 'zip()'
+    "ERA001",
+    "RUF009", # Do not perform function call in dataclass defaults
+    "TCH002", # Do not use 'typing.TYPE_CHECKING' in type annotations
+    "TCH001"
 ]
-extend-safe-fixes = ["TCH"]
-unfixable = ["ERA"]
+extend-safe-fixes = [
+    "TCH", # move import from and to TYPE_CHECKING blocks
+]
+unfixable = [
+    "ERA", # do not autoremove commented out code
+]
 
 [tool.ruff.lint.flake8-tidy-imports]
 ban-relative-imports = "all"
@@ -82,17 +101,20 @@ namespace_packages = true
 explicit_package_bases = true
 strict = true
 enable_error_code = [
-  "ignore-without-code",
-  "redundant-expr",
-  "truthy-bool"
+    "ignore-without-code",
+    "redundant-expr",
+    "truthy-bool",
 ]
 exclude = [
-  "docs/",
-  "test/",
-  "assets/"
+    "docs/",
+    "test/",
+    "assets/"
 ]
+
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 minversion = "6.0"
 testpaths = ["tests"]
+
+
