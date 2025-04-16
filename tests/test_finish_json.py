@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 import pytest
 
 from pydantic import BaseModel
@@ -8,6 +10,8 @@ from delta_stream._errors import DeltaStreamValidationError
 from delta_stream._finish_json import _finish_json
 from delta_stream.stream_parser import JsonStreamParser
 
+
+BACK_SLASH = chr(92)  # This is the backslash character in Python
 
 test_cases = [
     # Rule 1: Inside Key String -> None
@@ -72,6 +76,8 @@ test_cases = [
     ('{"start_esc": "\\\\nHello W', '{"start_esc": "\\\\nHello W"}'),
     ('{"nes": [{"ted": "G\\\\\\"H"', '{"nes": [{"ted": "G\\\\\\"H"}]}'),
     ('{"key"', None),
+    # Edge case where string ends with a single backslash
+    ('{"key": "value' + BACK_SLASH, '{"key": "value"}'),
 ]
 # Parameterize the test function
 
@@ -104,3 +110,13 @@ def test_finish_json_logic(input_snippet, expected_output):
     assert (
         actual_output == expected_output
     ), f"Mismatch for input snippet: '{input_snippet}'. Final State was: {parser._state}"
+
+    # Check if the output is valid JSON
+
+    if actual_output:
+        try:
+            json.loads(actual_output)
+        except json.JSONDecodeError:
+            pytest.fail(
+                f"Output for input snippet '{input_snippet}' is not valid JSON: {actual_output}"
+            )

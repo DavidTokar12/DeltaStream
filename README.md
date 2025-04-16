@@ -72,7 +72,8 @@ with client.beta.chat.completions.stream(
         if event.type == "content.delta" and event.parsed is not None:
             parsed: ShortArticle | None = stream_parser.parse_chunk(event.delta)
 
-            # If no valuable information was added by the delta(e.g the LLM is writing a key within a json) parsed will be None
+            # If no valuable information was added by the delta
+            # (e.g the LLM is writing a key within the json) 'parsed' will be None
             if parsed is None:
                 continue
 

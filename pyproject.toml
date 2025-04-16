@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "delta_stream"
-version = "0.1.0"
+version = "0.1.2"
 description = "Delta stream makes structured streaming easy and efficient. The primary use case in mind is handling the streaming of structured outputs of LLMs."
 authors = ["David Tokar <1413david@gmail.com>"]
 readme = "README.md"

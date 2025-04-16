@@ -52,12 +52,13 @@ def _finish_json(state: ParserState) -> str | None:
     if state.just_saw_colon:
         return None
 
+    # We are between a key and a comma
     if state.recently_finished_key:
+
         return None
 
     # Rule 3 (Revised): Check if parsing an incomplete literal/number
     if state.parsing_literal_or_number:
-
         start_index = -1
         temp_agg_string = state.aggregated_json_string
 
@@ -86,7 +87,12 @@ def _finish_json(state: ParserState) -> str | None:
 
     # Rule 4: If inside a (value) string, close it for the candidate.
     if state.is_inside_string:
-        candidate_string += '"'
+        # Count the trailing backslashes
+        bs_count = len(candidate_string) - len(candidate_string.rstrip(chr(92)))
+        # If there is an odd number of trailing backslashes, remove just one.
+        if bs_count % 2 == 1:
+            candidate_string = candidate_string[:-1]
+        suffix += '"'
 
     # Rule 5: Close open parentheses/brackets based on the stack
     for bracket_type in reversed(state.parenthesis_stack):
