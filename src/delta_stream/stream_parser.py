@@ -112,7 +112,7 @@ class JsonStreamParser(Generic[T]):
         """
 
         if not isinstance(chunk, str):
-            raise TypeError("delta must be a string.")
+            raise TypeError("chunk must be a string.")
 
         if not self._state.aggregated_json_string and not self._state.parenthesis_stack:
             chunk = chunk.lstrip()

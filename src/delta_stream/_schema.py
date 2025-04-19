@@ -151,19 +151,16 @@ def build_path_mapping(
             # Direct BaseModel field
             if isinstance(field_type, type) and issubclass(field_type, BaseModel):
                 models.add(field_type)
-
             # List of BaseModels
-            elif get_origin(field_type) in (list, list) and get_args(field_type):
+            elif get_origin(field_type) is list and get_args(field_type):
                 item_type = get_args(field_type)[0]
                 if isinstance(item_type, type) and issubclass(item_type, BaseModel):
                     models.add(item_type)
-
             # Union type with BaseModels
-            elif get_origin(field_type) in (Union, types.UnionType, Optional):
+            elif get_origin(field_type) in (Union, types.UnionType):
                 for arg in get_args(field_type):
                     if isinstance(arg, type) and issubclass(arg, BaseModel):
                         models.add(arg)
-
         return models
 
     models_to_process = collect_models(model_class)

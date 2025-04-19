@@ -1,17 +1,18 @@
 [tool.poetry]
 name = "delta_stream"
-version = "0.1.2"
-description = "Delta stream makes structured streaming easy and efficient. The primary use case in mind is handling the streaming of structured outputs of LLMs."
+version = "0.1.3"
+description = "Efficient structured streaming for real-time LLM outputs"
 authors = ["David Tokar <1413david@gmail.com>"]
 readme = "README.md"
 license = "MIT"
 repository = "https://github.com/DavidTokar12/DeltaStream"
 homepage = "https://github.com/DavidTokar12/DeltaStream"
+
 keywords = [
     "json", "stream", "parser", "delta", "diff", "pydantic", "llm", 
-    "ai", "openai", "claude", "anthropic", "streaming", "llm output", 
-    "structured data" 
+    "ai", "openai", "claude", "anthropic", "streaming", "structured data" 
 ]
+
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
@@ -44,7 +45,6 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.ruff]
 extend-exclude = [
-    "docs/",
     "test/",
 ]
 fix = true
@@ -109,11 +109,5 @@ exclude = [
     "test/",
     "assets/"
 ]
-
-
-[tool.pytest.ini_options]
-pythonpath = ["src"]
-minversion = "6.0"
-testpaths = ["tests"]
 
 

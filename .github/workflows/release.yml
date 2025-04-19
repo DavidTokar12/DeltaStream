@@ -1,0 +1,40 @@
+name: Release
+
+on:
+    release:
+        types: [created]
+    
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: ".python-version"
+
+      - name: Install Poetry
+        uses: abatilo/actions-poetry@v3
+        with:
+          poetry-version: "1.8.2"  # Or whichever version you prefer
+
+      - name: Configure Poetry
+        run: |
+          poetry config virtualenvs.create false
+          poetry install --no-interaction --all-extras
+
+      - name: Build and publish
+        env:
+          POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_API_TOKEN }}
+        run: |
+          poetry build
+          poetry publish
+
+
+
+          

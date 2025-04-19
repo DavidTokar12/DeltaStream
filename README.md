@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/DavidTokar12/DeltaStream/blob/main/logo.png" alt="Delta Stream Logo" height="200"/>
+  <img src="https://raw.githubusercontent.com/DavidTokar12/DeltaStream/main/logo.png" alt="Delta Stream Logo" height="200"/>
 </p>
 
 <h1 align="center">Delta Stream</h1>
@@ -15,34 +15,64 @@
 
 </div>
 
----
-
-## ✨ Features
-
-- **Efficiency** – Only triggers updates when *new* information is added.
-- **Delta Mode** – Dramatically reduces bandwidth by sending only the changed values.
-- **Validation** – Powered by Pydantic for safe and structured data integrity.
-- **Convenience** – Define stream defaults without compromising LLM accuracy.
+Delta Stream is a lightweight package for validating and parsing structured streams. It was created to handle real-time structured LLM outputs in one place – and do it efficiently.
 
 ---
 
-## 📦 Installation
+## Installation
 
 ```bash
 pip install delta_stream
 ```
 
-Or with Poetry:
+---
 
-```bash
-poetry add delta_stream
+## How it works
+
+You define the expected structure of the stream using a `Pydantic` model:
+
+```python
+class Todo(BaseModel):
+    task: str
+    is_boring: bool | None
+```
+
+Then, pass the model to `JsonStreamParser`, which builds a copy of your model with default values:
+
+```python
+from delta_stream import JsonStreamParser
+
+stream_parser = JsonStreamParser(data_model=Todo)
+```
+
+Now stream your incoming chunks through `parse_chunk`:
+
+```python
+task_str = '{"task":"study","is_boring": true}'
+for chunk in task_str:
+    result: Todo | None = stream_parser.parse_chunk(chunk)
+```
+
+Under the hood, `parse_chunk` uses a state machine to process only the incoming characters. If the chunk contains no meaningful data (e.g., just partial keys or syntax), it returns `None` – saving you resources, especially when forwarding to a frontend.
+
+When meaningful data is detected, Delta Stream aggressively (more so than Pydantic’s `partial=True` parser) completes the partial string into valid JSON, then validates it using your model.
+
+```
+'{"ta'          -> None
+'{"tas'         -> None
+'{"task'        -> None
+'{"task"'       -> None
+'{"task":'      -> None  # Until now, no valuable data was streamed
+'{"task":"s'    -> task='s' is_boring=None  # is_boring is None by default
+...
+'{"task":"study","is_boring": tru'  -> None
+'{"task":"study","is_boring": true' -> task='study' is_boring=True
+'{"task":"study","is_boring": true}' -> task='study' is_boring=True
 ```
 
 ---
 
-## 🚀 Usage
-
-### Basic Parsing
+## Example usage with `OpenAI`
 
 ```python
 from delta_stream import JsonStreamParser
@@ -54,43 +84,24 @@ class ShortArticle(BaseModel):
     description: str
     key_words: list[str]
 
-# Initialize the stream parser with your Pydantic model
-# Delta stream will try to initialize reasonable defaults for your model, see defaults section
 stream_parser = JsonStreamParser(data_model=ShortArticle)
 
 client = OpenAI()
 
 with client.beta.chat.completions.stream(
     model="gpt-4o",
-    messages=[
-        {"role": "system", "content": "Write short articles with a 1-sentence description."},
-        {"role": "user", "content": "Write an article about why it's worth keeping moving forward."},
-    ],
+    messages=[],
     response_format=ShortArticle,
 ) as stream:
     for event in stream:
         if event.type == "content.delta" and event.parsed is not None:
             parsed: ShortArticle | None = stream_parser.parse_chunk(event.delta)
 
-            # If no valuable information was added by the delta
-            # (e.g the LLM is writing a key within the json) 'parsed' will be None
             if parsed is None:
                 continue
 
-            # Valid ShortArticle object, with stream defaults
-            print(parsed)
+            print(parsed)  # process valid ShortArticle object
 ```
-
-**Sample output:**
-```
-title='The' description='' key_words=[]
-title='The Importance' description='' key_words=[]
-title='The Importance of' description='' key_words=[]
-...
-title='The Importance of Perseverance in Personal Growth' description='Moving forward, despite challenges, is crucial for personal growth as it fosters resilience, opens new opportunities, and leads to self-discovery.' key_words=['perseverance', 'resilience', 'personal growth', 'challenges', 'opportunities', 'self-discovery']
-```
-
----
 
 ### Delta Mode
 
@@ -117,16 +128,15 @@ title='' description='' key_words=['', '', '', '', '', '', 'ivation']
 
 > Only the fields that changed in the last update are populated. All others are set to their default, reducing payload size.
 
-📝 **Note:** Delta Mode only affects how **strings** are streamed. Booleans, numbers, and `None` values are included in every update.
+**Note:** Delta Mode only affects how **strings** are streamed. Booleans, numbers, and `None` values are included in every update.
 
-⚠️ **Warning:** Do **not** define non-empty defaults for strings when using Delta Mode. Doing so makes it impossible to reconstruct the full stream correctly on the frontend. 
+**Warning:** Do **not** define non-empty defaults for strings when using Delta Mode. Doing so makes it impossible to reconstruct the full stream correctly on the frontend.
 
 ---
 
-
 ### Defaults
 
-To ensure that each streamed delta can be parsed into a valid Pydantic model, Delta Stream tries to assign default values to all fields.
+To ensure that each streamed delta can be parsed into a valid `Pydantic` model, Delta Stream must assign default values to all fields. For convenience, Delta Stream will automatically assign some fields with predefined defaults.
 
 #### 🔧 Predefined defaults:
 
@@ -140,7 +150,7 @@ Delta Stream automatically applies the following defaults unless overridden:
 
 If you provide an explicit default for a field, Delta Stream will use that instead of the predefined one.
 
-> ⚠️ It's recommended **not** to set standard Pydantic defaults for strings or lists in streamed models. This can degrade LLM output quality and conflict with OpenAI's strict mode.
+> ⚠️ It's recommended **not** to set standard Pydantic defaults as this can degrade LLM output quality and conflict with OpenAI's strict mode. If the field is not a true default, use a `stream_default` value instead.
 
 ---
 
@@ -178,41 +188,39 @@ class ArticleContent(BaseModel):
 
 class ShortArticle(BaseModel):
     title: str
-    article_number: int | None
     content: ArticleContent
 ```
 
 **Sample output:**
 ```
-title='' article_number=None content=ArticleContent(description='', key_words=[])
-title='The' article_number=None content=ArticleContent(description='', key_words=[])
-title='The Value' article_number=None content=ArticleContent(description='', key_words=[])
+title='' content=ArticleContent(description='', key_words=[])
+title='The' content=ArticleContent(description='', key_words=[])
+title='The Value' content=ArticleContent(description='', key_words=[])
 ...
 ```
 
-> ⚠️ For numerical or boolean values you must define a default(or stream_default preferably) because Delta Stream can't figure out a reasonable default for these values and has to throw a DeltaStreamModelBuildError when you instantiate the JsonStreamParser class.
+> ⚠️ For numerical or boolean values you must define a default (or `stream_default`, preferably) because Delta Stream can't figure out a reasonable default for these values and will raise a `DeltaStreamModelBuildError` when you instantiate the `JsonStreamParser` class.
 
 ---
 
 ## ⚠️ Current Limitations
 
 - ❌ **No custom `default_factory` support**  
-  Custom default factories don't work with delta stream at the moment, so there is no reasonable way to use nested classes in unions.
+  Custom default factories don't work with Delta Stream at the moment, so there's no reliable way to use nested classes inside `Union`s, for example. (Most models used for structured LLM output are supported.)
 
 - ⚠️ **Delta Mode & non-empty string defaults**  
-  Avoid setting non-empty string defaults when using delta mode, as they can cause false-positive deltas.
+  Avoid setting non-empty string defaults when using Delta Mode, because you won't be able to reconstruct the object correctly on your frontend.
 
 ---
 
-## 📋 Requirements
+## Requirements
 
 - Python 3.10+
 - `pydantic >= 2.0`
 
 ---
 
-## 📄 License
+## License
 
 MIT License.
-
 
