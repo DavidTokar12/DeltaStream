@@ -9,7 +9,6 @@ from __future__ import annotations
 import types
 
 from typing import Any
-from typing import Optional
 from typing import Union
 from typing import get_args
 from typing import get_origin

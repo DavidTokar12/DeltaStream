@@ -32,24 +32,39 @@ class JsonStreamParser(Generic[T]):
 
     Attributes:
         data_model (Type[T]): The original target Pydantic model class.
-        stream_data_model (Type[T]): An internally generated Pydantic model class
-                                     with streaming defaults applied. Used for validation
-                                     and default filling during stream parsing attempts.
+        stream_data_model (Type[T]): An internally generated Pydantic model class,
+            with streaming defaults applied. Used for validation and default filling
+            during stream parsing attempts.
         delta_mode (bool): If True, `parse` returns the delta from the previous object.
+        ignore_validation_errors (bool): When True, no exception is raised
+            for JSON-decode or Pydantic-validation failures that occur after a
+            chunk appears structurally complete. Instead, ``parse_chunk`` simply
+            returns ``None`` and continues listening for more data. When False,
+            a :class:`delta_stream._errors.DeltaStreamValidationError` is raised.
     """
 
-    def __init__(self, data_model: type[T], delta_mode: bool = False) -> None:
+    def __init__(
+        self,
+        data_model: type[T],
+        delta_mode: bool = False,
+        ignore_validation_errors: bool = True,
+    ) -> None:
         """
         Initializes the JsonStreamParser.
 
         Args:
-            data_model: The target Pydantic BaseModel class definition to parse into.
-            delta_mode: If True, the `parse` method will return only the computed
-                           difference (delta) between the newly parsed object and the
-                           previous one. Defaults to False, returning the full object.
+            data_model (Type[T]): The target Pydantic BaseModel class definition to parse into.
+            delta_mode (bool): If True, the `parse` method will return only the computed
+                difference (delta) between the newly parsed object and the previous one.
+                Defaults to False, returning the full object.
+            ignore_validation_errors (bool): When True, no exception is raised
+                for JSON-decode or Pydantic-validation failures that occur after a
+                chunk appears structurally complete. Instead, ``parse_chunk`` simply
+                returns ``None`` and continues listening for more data. When False,
+                a :class:`delta_stream._errors.DeltaStreamValidationError` is raised.
 
         Raises:
-            TypeError: If data_model is not a supported Pydantic class.
+            TypeError: If `data_model` is not a supported Pydantic class.
             RuntimeError: If the internal streaming model generation fails.
         """
         if not inspect.isclass(data_model):
@@ -82,7 +97,9 @@ class JsonStreamParser(Generic[T]):
                 f"Unexpected error while generating streaming model: {e}"
             ) from e
 
+
         self._delta_mode: bool = delta_mode
+        self._ignore_validation_errors = ignore_validation_errors
         self._previous_result: dict | None = None
         self._state: ParserState = ParserState(parenthesis_stack=[])
 
@@ -133,10 +150,18 @@ class JsonStreamParser(Generic[T]):
         try:
             full_obj = self.parse_json(candidate_string)
         except ValidationError as e:
+
+            if self._ignore_validation_errors:
+                return None
+
             raise DeltaStreamValidationError(
                 f"Validation error during final parsing: {e}"
             ) from e
         except json.JSONDecodeError as e:
+
+            if self._ignore_validation_errors:
+                return None
+
             raise DeltaStreamValidationError(
                 f"JSON parsing error during final parsing: {candidate_string}"
             ) from e
