@@ -97,7 +97,6 @@ class JsonStreamParser(Generic[T]):
                 f"Unexpected error while generating streaming model: {e}"
             ) from e
 
-
         self._delta_mode: bool = delta_mode
         self._ignore_validation_errors = ignore_validation_errors
         self._previous_result: dict | None = None
