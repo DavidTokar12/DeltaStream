@@ -99,7 +99,7 @@ class JsonStreamParser(Generic[T]):
 
         self._delta_mode: bool = delta_mode
         self._ignore_validation_errors = ignore_validation_errors
-        self._previous_result: dict | None = None
+        self._previous_result: BaseModel | None = None
         self._state: ParserState = ParserState(parenthesis_stack=[])
 
     def parse_chunk(self, chunk: str) -> T | None:
@@ -172,10 +172,9 @@ class JsonStreamParser(Generic[T]):
         if not self._delta_mode:
             return full_obj
 
-        result_dict = full_obj.model_dump()
-        delta_result = compute_delta(self._previous_result, result_dict) or {}
+        delta_result = compute_delta(self._previous_result, full_obj) or {}
 
-        self._previous_result = result_dict
+        self._previous_result = full_obj
 
         return self.parse_json(delta_result)
 
